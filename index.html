@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Premium Viewer</title>
+<style>
+  :root{
+    --primary-1:#00c6ff;
+    --primary-2:#0072ff;
+    --accent-1:#ff2ea6;
+    --accent-2:#6a11cb;
+    --glass-bg: rgba(255,255,255,.18);
+    --glass-brd: rgba(255,255,255,.35);
+    --shadow: 0 12px 40px rgba(0,0,0,.22);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family: ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    color:#0f172a;
+    background: linear-gradient(-45deg,var(--primary-1),var(--primary-2),var(--accent-2),#2575fc);
+    background-size: 400% 400%;
+    animation: gradientMove 14s ease infinite;
+    -webkit-tap-highlight-color: transparent;
+  }
+  @keyframes gradientMove{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+  .screen{display:none; height:100%; width:100%; position:fixed; inset:0; overflow:hidden; padding: clamp(18px, 5vw, 36px);}
+  .show{display:flex}
+  .center{margin:auto; width:100%; max-width:560px; text-align:center}
+
+  /* ---------- Splash ---------- */
+  .splash{justify-content:center; align-items:center; background:#fff;}
+  .logoWrap{display:flex; align-items:center; justify-content:center; gap:16px; transform: scale(.8); opacity:0; animation: popIn .9s .2s both;}
+  @keyframes popIn{0%{transform:scale(.85); opacity:0}100%{transform:scale(1); opacity:1}}
+  .igLogo{width:116px; height:116px; border-radius:24px; background: linear-gradient(135deg,#fd1d1d,#833ab4,#405de6); box-shadow: 0 12px 40px rgba(64,93,230,.35); display:grid; place-items:center;}
+  .igLogo svg{width:64px; height:64px; filter: drop-shadow(0 4px 10px rgba(0,0,0,.15));}
+  .brand{font-weight:800; letter-spacing:.6px; color:#0f172a; font-size: clamp(26px, 5vw, 38px);}
+  .tag{color:#64748b; font-weight:600; margin-top:6px}
+
+  /* ---------- Main (See Profile) ---------- */
+  .card{
+    background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.25));
+    border:1px solid var(--glass-brd);
+    border-radius:28px; padding:28px; box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
+  }
+  h1{margin:8px 0 6px; font-size: clamp(24px, 6vw, 36px); letter-spacing:1px; color:#0b1220;}
+  .sub{color:#5b6b84; font-weight:600; margin-bottom:20px}
+
+  .inputWrap{position:relative; margin:16px auto 18px; max-width:520px;}
+  .input{
+    width:100%; height:56px; border-radius:28px; outline:none; border:1px solid var(--glass-brd);
+    background: rgba(255,255,255,.7); padding:0 56px 0 56px; font-size:16px; font-weight:600; color:#0f172a;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 10px 24px rgba(2,6,23,.08);
+  }
+  .input::placeholder{color:#9aa7bd; font-weight:600}
+  .icon{position:absolute; left:18px; top:50%; transform:translateY(-50%); opacity:.7}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    width:220px; height:48px; border-radius:999px; border:none; cursor:pointer;
+    margin:8px auto 0; font-weight:800; letter-spacing:.5px;
+    color:#fff; text-transform:uppercase;
+    background: linear-gradient(90deg,var(--primary-1),var(--primary-2));
+    box-shadow: 0 12px 30px rgba(0,114,255,.45);
+    transition: transform .2s ease, box-shadow .2s ease;
+    position:relative; overflow:hidden;
+  }
+  .btn:active{transform:scale(.98)}
+  .btn:hover{box-shadow:0 16px 36px rgba(0,114,255,.6)}
+
+  .dotLoader{display:none; gap:6px}
+  .dot{width:7px; height:7px; border-radius:50%; background:#fff; opacity:.85; animation:bounce .9s infinite}
+  .dot:nth-child(2){animation-delay:.15s}
+  .dot:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+
+  /* ---------- Loading Screens ---------- */
+  .loadWrap{background:#fff; display:flex; align-items:center; justify-content:center;}
+  .loaderCard{width:min(560px,92vw); text-align:center; margin:auto;}
+  .spinner{width:64px; height:64px; border-radius:50%; border:6px solid #e5e7eb; border-top-color: var(--primary-2); border-right-color: #ff2ea6; animation: spin 1.1s linear infinite; margin:0 auto 16px; box-shadow:0 4px 14px rgba(0,0,0,.08);}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loadTitle{font-weight:800; color:#0f172a; letter-spacing:.4px; margin:12px 0 8px;}
+  .progress{height:6px; width:100%; background:#eef2f7; border-radius:999px; overflow:hidden; box-shadow: inset 0 1px 0 #fff}
+  .progress>span{display:block; height:100%; width:0; background:linear-gradient(90deg,var(--primary-1),var(--primary-2)); border-radius:inherit}
+
+  /* ---------- Final Profile Mock ---------- */
+  .final{background:#f6f7fb; overflow:auto}
+  .profileCard{
+    max-width:560px; margin:0 auto; padding:22px 22px 28px;
+    border-radius:28px; box-shadow: var(--shadow);
+    background: linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.75));
+    border:1px solid rgba(15,23,42,.06); backdrop-filter: blur(12px);
+  }
+  .avatar{width:92px; height:92px; border-radius:50%; overflow:hidden; margin:0 auto 10px; background-size: cover; background-position: center; border:4px solid #fff; box-shadow:0 8px 24px rgba(2,6,23,.15)}
+  .name{font-weight:900; font-size:20px; letter-spacing:.4px}
+  .stats{display:flex; justify-content:space-between; gap:14px; margin:16px 0 6px;}
+  .stat{flex:1; padding:12px; border-radius:16px; background:rgba(2,6,23,.04); font-weight:800; color:#0f172a;}
+  .stat small{display:block; color:#6b778d; font-weight:700; margin-top:2px}
+  .privateTag{margin:14px auto 10px; display:inline-block; padding:8px 14px; border-radius:999px; font-weight:800; color:#6f3ef6; background:rgba(111,62,246,.12); border:1px dashed rgba(111,62,246,.35)}
+  .ghostBtn{margin-top:8px; background:#111827; color:#fff; border:none; height:46px; border-radius:12px; width:100%; font-weight:800; letter-spacing:.5px; box-shadow:0 12px 28px rgba(17,24,39,.25); cursor:pointer;}
+  .note{color:#64748b; font-weight:600; margin-top:12px}
+  .safe{height:14px}
+
+  /* ---------- Feed Single Column ---------- */
+  .feed{display:none; margin-top:20px;}
+  .feedUser{font-weight:700; margin-bottom:14px; text-align:left; color:#111;}
+  .grid{display:flex; flex-direction:column; gap:28px;}
+  .grid img{width:100%; border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.12);}
+
+  /* Divider line under each image */
+  .divider {
+    height:4px;
+    background:linear-gradient(90deg,var(--primary-1),var(--accent-1),var(--primary-2));
+    border-radius:50px;
+    opacity:0;
+    transform:translateX(-30px);
+    animation:slideFade 0.8s forwards;
+  }
+  @keyframes slideFade {
+    to { opacity:1; transform:translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<section id="splash" class="screen splash show">
+  <div class="center">
+    <div class="logoWrap">
+      <div class="igLogo">
+        <svg viewBox="0 0 24 24" fill="none">
+          <rect x="1.5" y="1.5" width="21" height="21" rx="6" stroke="white" stroke-width="2"/>
+          <circle cx="19" cy="5" r="1.4" fill="white"/>
+          <path d="M12 8c-3 0-5.5 2-6 4 .5 2 3 4 6 4s5.5-2 6-4c-.5-2-3-4-6-4Z" stroke="white" stroke-width="2" fill="none"/>
+          <circle cx="12" cy="12" r="2.2" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand">PREMIUM VIEWER</div>
+        <div class="tag">Loading Please Wait…</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<section id="main" class="screen show" style="display:none;">
+  <div class="center">
+    <div class="card">
+      <h1>PREMIUM VIEWER</h1>
+      <div class="sub">View Private Instagram Profile Posts</div>
+
+      <div class="inputWrap">
+        <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <circle cx="11" cy="11" r="7" stroke="#1f2937" stroke-opacity=".55" stroke-width="2"/>
+          <path d="M20 20l-3.5-3.5" stroke="#1f2937" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input id="url" class="input" type="url" placeholder="Enter Instagram Profile URL" />
+      </div>
+
+      <button id="go" class="btn small">
+        <span class="btnText">See Profile</span>
+        <span class="dotLoader"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      </button>
+    </div>
+  </div>
+  <div class="safe"></div>
+</section>
+
+<!-- LOADING -->
+<section id="loading" class="screen loadWrap" style="display:none;">
+  <div class="loaderCard">
+    <div class="spinner"></div>
+    <div id="loadTitle" class="loadTitle">Connecting to secure servers…</div>
+    <div class="progress"><span id="bar"></span></div>
+  </div>
+</section>
+
+<!-- FINAL PROFILE -->
+<section id="final" class="screen final" style="display:none;">
+  <div class="center">
+    <div class="profileCard">
+      <div id="avatar" class="avatar"></div>
+      <div class="name" id="pName">@demo_user</div>
+      <div class="stats">
+        <div class="stat">10<small>Posts</small></div>
+        <div class="stat">44<small>Followers</small></div>
+        <div class="stat">732<small>Following</small></div>
+      </div>
+      <span class="privateTag">PRIVATE POST</span>
+   <button class="ghostBtn" onclick="unlockFeed()">Unlock Preview</button>
+      <div class="note">App Published By Vansh.</div>
+
+      <!-- Feed -->
+      <div id="feed" class="feed">
+        <div class="feedUser" id="feedUser">@demo_user</div>
+        <div class="grid" id="feedGrid"></div>
+      </div>
+    </div>
+    <div class="safe">
+    </div>
+  </div>
+</section>
+
+<script>
+function show(id){
+  for(const el of document.querySelectorAll('.screen')) el.style.display='none';
+  document.getElementById(id).style.display='flex';
+}
+setTimeout(()=>show('main'),1400);
+
+const btn=document.getElementById('go');
+const btnText=btn.querySelector('.btnText');
+const dots=btn.querySelector('.dotLoader');
+const input=document.getElementById('url');
+
+btn.addEventListener('click',()=>{
+  btn.disabled=true; btnText.style.display='none'; dots.style.display='inline-flex';
+  setTimeout(()=>{
+    const v=(input.value||'').trim();
+    if(v){
+      const name=v.replace(/^https?:\/\/(www\.)?instagram\.com\//i,'')
+                  .replace(/[\/?#].*$/,'').replace(/^@/,'');
+      if(name) {
+        document.getElementById('pName').textContent='@'+name;
+        document.getElementById('feedUser').textContent='@'+name;
+      }
+    }
+    const pics=[
+      "https://i.ibb.co/j9TFb0YP/images-23.jpg",
+      "https://i.ibb.co/ycNjV5WW/images-22.jpg",
+      "https://i.ibb.co/QsSxg77/images-21.jpg",
+      "https://i.ibb.co/R4b69Spg/images-20.jpg",
+      "https://i.ibb.co/1GLsSCFF/images-19.jpg",
+    ];
+    const randomPic = pics[Math.floor(Math.random()*pics.length)];
+    document.getElementById("avatar").style.backgroundImage = `url(${randomPic})`;
+
+    show('loading');
+    runLoadingSequence();
+
+    btn.disabled=false; btnText.style.display='inline'; dots.style.display='none';
+  },900);
+});
+
+const steps=[
+  {text:'Connecting to secure servers…',dur:1300},
+  {text:'Verifying profile authenticity…',dur:1400},
+  {text:'Extracting premium data…',dur:1500},
+  {text:'Generating premium insights…',dur:1500},
+  {text:'Finalizing premium report…',dur:1300},
+];
+
+function animateBar(ms){
+  return new Promise(res=>{
+    const bar=document.getElementById('bar');
+    bar.style.transition='none'; bar.style.width='0%';
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        bar.style.transition=`width ${ms}ms ease`;
+        bar.style.width='100%';
+      });
+    });
+    setTimeout(res,ms);
+  });
+}
+
+async function runLoadingSequence(){
+  const title=document.getElementById('loadTitle');
+  for(const step of steps){
+    title.textContent=step.text;
+    await animateBar(step.dur);
+  }
+  show('final');
+}
+// ------- Unlock Feed -------
+function unlockFeed(){
+  const feed=document.getElementById("feed");
+  const grid=document.getElementById("feedGrid");
+  grid.innerHTML="";
+  const imgs=[
+    "https://i.ibb.co/hJvLyf9Q/images-27.jpg",
+    "https://i.ibb.co/bM1Rns1Z/images-28.jpg",
+    "https://i.ibb.co/jk20Dzm6/images-29.jpg",
+    "https://i.ibb.co/PZcVX1BM/images-25.jpg",
+    "https://i.ibb.co/q32mf7dW/images-26.jpg",
+    "https://i.ibb.co/Jw6d84G2/images-24.jpg"
+  ];
+  imgs.forEach((src,i)=>{
+    const wrap=document.createElement("div");
+    const im=document.createElement("img");
+    im.src=src;
+    wrap.appendChild(im);
+    
+    // divider add
+    const divider=document.createElement("div");
+    divider.className="divider";
+    divider.style.animationDelay=(i*0.2)+"s";
+    wrap.appendChild(divider);
+
+    grid.appendChild(wrap);
+  });
+  feed.style.display="block";
+}
+</script>
+</body>
+</html>
